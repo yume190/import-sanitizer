@@ -25,9 +25,9 @@ $ cp -f .build/release/importsanitizer /usr/local/bin/importsanitizer
 
 ### 支持的业务场景
 
-1. sdk 模式：用于修复组件内部的头文件引用问题，例如 SAKUIKit 的组件源码
-2. app 模式：用于修复示例工程的头文件引用问题，例如 SAKUIKit 的 demo 工程源码
-3. shell 模式：用于修复壳工程的头文件引用问题，例如 imeituan 工程项目中 PODS 目录下的源码
+1. sdk 模式：用于修复组件内部的头文件引用问题，例如 AFNetworking 的组件源码
+2. app 模式：用于修复示例工程的头文件引用问题，例如 AFNetworking 的 demo 工程源码
+3. shell 模式：用于修复壳工程的头文件引用问题，例如全部二进制化后的工程项目中 PODS 目录下的源码
 
 ### 使用前的准备
 
