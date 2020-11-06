@@ -17,10 +17,13 @@
 
 * 在 Github 上下载项目源码
 * 编译工程，生成二进制文件并移动至 bin 目录下
+* 修改可执行文件权限
 
 ```swift
 $ swift build --configuration release
 $ cp -f .build/release/importsanitizer /usr/local/bin/importsanitizer
+$ cd /usr/local/bin
+$ sudo chmod -R 777 importsanitizer
 ```
 
 ### 支持的业务场景
