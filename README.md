@@ -1,10 +1,7 @@
 # ImportSanitizer
 
-## 项目链接
-
-Github 传送门：[http://github.sankuai.com/zhangsiqi04/importsanitizer](http://github.sankuai.com/zhangsiqi04/importsanitizer)
-
 ## 开发背景
+
 在 iOS 的工程文件中，我们经常会看到开发者使用各种姿势引用其他组件，例如 `#import "A.h"`, `#import <A.h>` 和 `#import "A/A.h"`，这些写法较 `#import <A/A.h>` 来说都是非标准写法，同时也会带来许多问题：
 
 1. 非标准写法会造成项目的 `search path` 变得冗长，进而引起编译耗时加剧，在极端情况下，字段过长还会触发无法编译的问题。
@@ -18,10 +15,9 @@ Github 传送门：[http://github.sankuai.com/zhangsiqi04/importsanitizer](http:
 
 ### 命令行工具安装
 
-* 在 [http://github.sankuai.com/zhangsiqi04/importsanitizer](http://github.sankuai.com/zhangsiqi04/importsanitizer) 上下载项目源码
+* 在 Github 上下载项目源码
 * 编译工程，生成二进制文件并移动至 bin 目录下
 * 修改可执行文件权限
-
 
 ```swift
 $ swift build --configuration release
@@ -32,9 +28,9 @@ $ sudo chmod -R 777 importsanitizer
 
 ### 支持的业务场景
 
-1. sdk 模式：用于修复组件内部的头文件引用问题，例如 SAKUIKit 的组件源码
-2. app 模式：用于修复示例工程的头文件引用问题，例如 SAKUIKit 的 demo 工程源码
-3. shell 模式：用于修复壳工程的头文件引用问题，例如 imeituan 工程项目中 PODS 目录下的源码
+1. sdk 模式：用于修复组件内部的头文件引用问题，例如 AFNetworking 的组件源码
+2. app 模式：用于修复示例工程的头文件引用问题，例如 AFNetworking 的 demo 工程源码
+3. shell 模式：用于修复壳工程的头文件引用问题，例如全部二进制化后的工程项目中 PODS 目录下的源码
 
 ### 使用前的准备
 
@@ -55,8 +51,9 @@ $ importsantizer x/x/podfile -m sdk -t 'x/x/a.podspec.json'
 ```
 
 第一个参数为 podfile 文件的路径，用于确认整个头文件与索引的映射表
-第二个参数为 CLI 工具的工作模式，可以输入的值为 sdk, shell, app 
-第三个参数为需要修改的文件路径，
+第二个参数为 CLI 工具的工作模式，可以输入的值为 sdk, shell, app
+第三个参数为需要修改的文件路径
+
   * 在 sdk 模式下，为 `podspec.json` 的路径，因为需要通过 podspec 的 `source_file` 字段确定源文件的路径
   * 在 shell 模式下，为 PODS 目录的路径
   * 在 app 模式想，为示例工程目录的路径
@@ -72,7 +69,7 @@ $ importsantizer x/x/podfile -m sdk -t 'x/x/a.podspec.json'
 ? NOTE: B.h belong to [B, BB, BBB], developer should fix manually!
 ```
 
-无论你是组件开发者，还是组件使用者，当遇到组件迁移的场景，例如 `SAKMetricsTrafficType.h` 从 `SAKMetrics` 迁移到 `CIPMetrics` 的时候，ImportSanitizer 就可以帮你节省不少时间与经历，通过本地添加映射规则，我们可以改变转换的规则，让我们举个简单的例子!
+无论你是组件开发者，还是组件使用者，当遇到组件迁移的场景，例如 `A.h` 从 `AA` 迁移到 `A` 的时候，ImportSanitizer 就可以帮你节省不少时间与经历，通过本地添加映射规则，我们可以改变转换的规则，让我们举个简单的例子!
 
 在本地文件中，生成一个 json 文件，它的名字为 `MapTablePatch.josn`，里面的内容如下
 
@@ -131,7 +128,7 @@ OPTIONS:
 
 ## 原理
 
-整个脚本工具的原理十分简单，受小青同学的 [自动修正头文件引用](https://km.sankuai.com/page/173818812) 启发，整个工具的工作原理如下
+整个脚本工具的原理十分简单，受靛青同学的启发，整个工具的工作原理如下
 
 1. 通过 `PODS` 目录建立头文件与组件的映射表，这一映射是后续头文件转换的参考信息
 2. 通过 podspec 或者其他文件信息，确认需要修改的文件全集
@@ -139,34 +136,29 @@ OPTIONS:
 
 ## Q & A
 
-
 1. 为什么我的头文件没有被修复，还报错了
-
-* 请检查组件所在文件夹内是否具有读写权限，如果没有，请执行 `chmod -R 777 .` 获取权限
-* 是否确保了 podspec 和 podspec.json 文件在同一路径下
-* 请检查参数是否都符合预期，具体细节请重新阅读**核心用法**的内容
+  * 请检查组件所在文件夹内是否具有读写权限，如果没有，请执行 `chmod -R 777 .` 获取权限
+  * 是否确保了 podspec 和 podspec.json 文件在同一路径下
+  * 请检查参数是否都符合预期，具体细节请重新阅读**核心用法**的内容
 
 2. 为什么找不到 podspec.json 文件？
-* 这个文件需要开发者手动生成，具体命令为 
-
-```shell
-$ pod ipc spec LibraryName.podspec >> LibraryName.podspec.json
-```
+  * 这个文件需要开发者手动生成，具体命令为 
+  ```shell
+  $ pod ipc spec LibraryName.podspec >> LibraryName.podspec.json
+  ```
 
 3. 为什么 MapTablePatch.json 文件没有生效？
-
-* 检查命令行是否输入了 -p 及相关路径
-* json 文件的格式是否符合要求，以下为参考示例
-
-```json
-[
-  {
-    "name":"A.h",
-    "pod":"A"
-  },
-  {
-    "name":"B.h",
-    "pod":"B"
-  }
-]
-```
+  * 检查命令行是否输入了 -p 及相关路径
+  * json 文件的格式是否符合要求，以下为参考示例
+  ```json
+  [
+    {
+      "name":"A.h",
+      "pod":"A"
+    },
+    {
+      "name":"B.h",
+      "pod":"B"
+    }
+  ]
+  ```
