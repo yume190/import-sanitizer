@@ -7,15 +7,38 @@
 
 import Foundation
 
+public struct SubSpec: Codable {
+    var name: String
+    var sourceFiles: [String]?
+    
+    enum CodingKeys: String, CodingKey {
+        case name
+        case sourceFiles = "source_files"
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let vals = try decoder.container(keyedBy: CodingKeys.self)
+        name = try vals.decode(String.self, forKey: CodingKeys.name)
+        // 判断 sourceFiles 类型的归属
+        if let stringProperty = try? vals.decode(String.self, forKey: CodingKeys.sourceFiles) {
+            sourceFiles = [stringProperty]
+        } else if let arrayProperty = try? vals.decode(Array<String>.self, forKey: CodingKeys.sourceFiles) {
+            sourceFiles = arrayProperty
+        }
+    }
+}
+
 public struct PodSpec: Codable {
     var name: String
     var moduleName: String?
-    var sourceFiles: [String]
+    var sourceFiles: [String]?
+    var subSpecs: [SubSpec]?
     
     enum CodingKeys: String, CodingKey {
         case name
         case moduleName = "module_name"
         case sourceFiles = "source_files"
+        case subSpecs = "subspecs"
     }
     
     public init(from decoder: Decoder) throws {
@@ -32,11 +55,12 @@ public struct PodSpec: Codable {
             sourceFiles = [stringProperty]
         } else if let arrayProperty = try? vals.decode(Array<String>.self, forKey: CodingKeys.sourceFiles) {
             sourceFiles = arrayProperty
-        } else {
-            let error = DecodingError.Context(codingPath: vals.codingPath,
-                                      debugDescription: "Not a valid JSON")
-            throw DecodingError.dataCorrupted(error)
         }
+        // 判断 subSpecs 类型的归属
+        if let arrayProperty = try vals.decode([SubSpec]?.self, forKey: .subSpecs) {
+            subSpecs = arrayProperty
+        }
+        
     }
     
     public func encode(to encoder: Encoder) throws {
@@ -48,6 +72,25 @@ public struct PodSpec: Codable {
         }
         
         try container.encode(sourceFiles, forKey: .sourceFiles)
+        try container.encode(subSpecs, forKey: .subSpecs)
     }
     
+}
+
+extension PodSpec {
+    func sourceFilesAll() -> [String] {
+        var result = [String]()
+        if let value = self.sourceFiles {
+            result.append(contentsOf: value)
+        }
+        if let info = self.subSpecs {
+            for subspec in info {
+                if let value = subspec.sourceFiles {
+                    result.append(contentsOf: value)
+                }
+            }
+        }
+
+        return result
+    }
 }

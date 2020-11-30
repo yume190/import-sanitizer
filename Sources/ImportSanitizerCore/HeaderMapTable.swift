@@ -10,11 +10,13 @@ import Files
 
 struct HeaderMapTable {
     let path: String
-    var mapTable: [String: [String]]
+    let ignorePods: [String]?
+    var mapTable = [String: [String]]()
     var count: Int { mapTable.count }
 
-    init(podfile path: String) throws {
+    init(podfile path: String, ignorePods: [String]?) throws {
         self.path = path
+        self.ignorePods = ignorePods
         // 核心逻辑: 通过 PODS 目录获取所有 SDK 的名称
         
         // 构建映射
@@ -23,8 +25,11 @@ struct HeaderMapTable {
         let podsPath = path.replacingOccurrences(
             of: "/Podfile",
             with: "/Pods")
-        let sdkNames = try Utility.fetchSDKNames(with: podsPath)
-        
+        var sdkNames = try Utility.fetchSDKNames(with: podsPath)
+        // 根据 ignorePods 对 mapTabl 进行改造
+        if let names = self.ignorePods, names.count > 0 {
+            sdkNames.removeAll { names.contains($0) }
+        }
         // 通过组件名称构建一个 sdk 路径, 在这个路径下把所有文件名遍历并塞到映射表中
         for sdk in sdkNames {
             let sdkPath = podsPath + "/" + sdk
@@ -46,7 +51,6 @@ struct HeaderMapTable {
         print("""
         当前工程引入的 SDK 数量: \(sdkNames.count)
         映射表的键值对数量有: \(mapTable.count)
-        ===========================
         """)
     }
 }
@@ -74,7 +78,7 @@ extension HeaderMapTable {
         }
         
         print("""
-        注意! 该项目存在重名头文件的情况 !!!
+        注意! 该项目依赖的组件存在重名头文件的情况 !!!
         以下为整体情况:
         重名头文件有 \(duplicatedHeadersInfo.count) 个
         涉及的仓库个数为 \(relatedPods.count) 个
@@ -84,24 +88,22 @@ extension HeaderMapTable {
         重名头文件的信息如下:
         """)
         for message in duplicatedHeadersMessage {
-            print("+ \(message)")
+            print("\(OutputPrefix.note.rawValue) \(message)")
         }
-        print("===========================")
     }
 }
 
 extension HeaderMapTable {
     mutating func updateWith(_ patchFilePath: String) throws {
         let customMapTableInfo = try Utility.fetchCustomMapTable(with: patchFilePath)
-        print("修改了以下头文件的映射关系")
+        print("根据 patch file 修改了以下头文件的映射关系:")
         for info in customMapTableInfo {
             guard let podsNames = self.mapTable[info.name] else {
                 continue
             }
             self.mapTable[info.name] = [info.pod]
-            print("* 将 \(info.name) 的映射关系从 \(podsNames) 变成了 \(info.pod)")
+            print("\(OutputPrefix.note.rawValue) 将 \(info.name) 的映射关系从 \(podsNames) 变成了 \(info.pod)")
 
         }
-        print("==============")
     }
 }

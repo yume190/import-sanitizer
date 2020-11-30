@@ -19,25 +19,23 @@ struct ImportSyntax: CustomStringConvertible {
     var description: String { raw }
 
     // #import "A/A.h" 为例
-    let raw: String                 // #import "A/A.h"
-    let type: ImportSyntaxType      // quotationWithSlash
-    let prefix: String?             // #import
-    let info: String?               // A/A.h
-    let headerName: String?         // A
-    let podName: String?            // A.h
+    let raw: String                         // #import "A/A.h"
+    let prefix: String?                     // #import
+    let info: String?                       // A/A.h
+    let headerName: String?                 // A
+    let podName: String?                    // A.h
+    var type = ImportSyntaxType.unknown     // quotationWithSlash
     
     init?(_ raw: String) throws {
         self.raw = raw
-        self.type = try ImportSyntax.getImportSyntaxType(raw)
-        
+        self.type = try ImportSyntax.getImportSyntaxType(self.raw)
+
         guard let aPrefix = raw.split(separator: " ").first else {
-            //WARNING:
             return nil
         }
         self.prefix = String(aPrefix)
         
         guard let aInfo = raw.split(separator: " ").last?.dropLast().dropFirst() else {
-            //WARNING:
             return nil
         }
         self.info = String(aInfo)
@@ -46,7 +44,6 @@ struct ImportSyntax: CustomStringConvertible {
         case .quotationWithSlash, .guillemetsWithSlash:
             guard let aPodName = self.info?.split(separator: "/").first,
                   let aheaderName = self.info?.split(separator: "/").last else {
-                //WARNING:
                 self.podName = nil
                 self.headerName = nil
                 return
@@ -60,6 +57,7 @@ struct ImportSyntax: CustomStringConvertible {
             self.podName = nil
             self.headerName = nil
         }
+        
     }
 }
 
@@ -73,13 +71,13 @@ extension ImportSyntax {
         let guillemetsWithSlashPattern = "#import.*(<)(.*?)/(.*?)(>)"
         
         if try raw.isMatch(pattern: quotationWithSlashPattern) {
-            return ImportSyntaxType.quotationWithSlash
+            return .quotationWithSlash
         } else if try raw.isMatch(pattern: noSlashPattern)  {
-            return ImportSyntaxType.noSlash
+            return .noSlash
         } else if try raw.isMatch(pattern: guillemetsWithSlashPattern) {
-            return ImportSyntaxType.guillemetsWithSlash
+            return .guillemetsWithSlash
         } else {
-            return ImportSyntaxType.unknown
+            return .unknown
         }
     }
 }

@@ -18,22 +18,18 @@ struct Sanitizer {
         self.mode = mode
         self.target = target
     }
-    
-    func go() throws {
-        print("即将开始头文件引用问题的修复")
+        
+    func scan(needWrite: Bool) throws {
         for file in self.target.sourceFiles {
             var content = try String(contentsOfFile: file.path)
             let syntaxArray = try self.searchImportSyntax(in: content)
-            for syntax in syntaxArray where
-                try self.check(importSyntax: syntax, in: file) {
-                content = try self.fix(importSyntax: syntax, in: content)
+            for syntax in syntaxArray where try self.check(importSyntax: syntax, in: file) {
+                content = try self.fix(importSyntax: syntax, in: content, with: file)
             }
-            try file.write(content)
+            if needWrite {
+                try file.write(content)
+            }
         }
-        print("""
-        修复结束
-        =================================
-        """)
     }
     
     func searchImportSyntax(in content: String) throws -> [ImportSyntax] {
@@ -78,7 +74,7 @@ extension Sanitizer {
             }
             guard podNames.count == 1 else {
                 // 说明有同名的头文件, 此时不做修复, 应当提醒开发者手动修改
-                print("? NOTE: \(headerName) belong to \(podNames), developer should fix manually!")
+                print("\(OutputPrefix.error.rawValue) Error type is duplicated headers, \(headerName) belong to \(podNames) in \(file.name), remember fix it manually!")
                 return false
             }
             //2 获取 file 的 pod 名称
@@ -111,7 +107,8 @@ extension Sanitizer {
 
     // 前置检查已经在 check 方法中进行,所以这里可以直接强制拆包进行处理
     func fix(importSyntax: ImportSyntax,
-             in content: String) throws -> String {
+             in content: String,
+             with file: File ) throws -> String {
         var result = content
         let range = NSRange(location: 0, length:result.count)
         switch importSyntax.type {
@@ -124,7 +121,7 @@ extension Sanitizer {
                                                 options: .caseInsensitive)
             let final = importSyntax.prefix!
                     + " <" + importSyntax.info! + ">"
-            print("! Error Type is QuotationWithSlash: fix \(importSyntax.raw) to \(final)")
+            print("\(OutputPrefix.error.rawValue) Error Type is QuotationWithSlash, fix \(importSyntax.raw) to \(final) in \(file.name)")
             result = regex.stringByReplacingMatches(in: result,
                                                     options: .reportProgress,
                                                     range: range,
@@ -139,7 +136,7 @@ extension Sanitizer {
             let podNames = self.reference.mapTable[String(headerName)]!
             let final = importSyntax.prefix!
                         + " <" + podNames.first! + "/" + headerName + ">"
-            print("! Error Type is NoSlash: fix \(importSyntax.raw) to \(final)")
+            print("\(OutputPrefix.error.rawValue) Error Type is NoSlash, fix \(importSyntax.raw) to \(final) in \(file.name)")
             result = regex.stringByReplacingMatches(in: result,
                                                     options: .reportProgress,
                                                     range: range,

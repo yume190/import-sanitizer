@@ -16,7 +16,19 @@ struct ImportSanitizerError: LocalizedError {
     var errorDescription: String? { message }
 }
 
-class Utility {
+public enum SeperateLine: String {
+    case normal     = "----------"
+    case success    = "**********"
+    case fail       = "=========="
+}
+
+public enum OutputPrefix: String {
+    case note       = "? Note:"
+    case warning    = "! Warning:"
+    case error      = "* Error:"
+}
+
+public class Utility {
     static func fetchSDKNames(with podsPath: String) throws -> [String] {
         var sdkNames = [String]()
         // 获取所有组件的名称,通过排除 pods 目录下的个别文件夹

@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "ImportSanitizer::ImportSanitizer"
-               BuildableName = "ImportSanitizer"
-               BlueprintName = "ImportSanitizer"
+               BlueprintIdentifier = "ImportSanitizer::ImportSanitizerCore"
+               BuildableName = "ImportSanitizerCore.framework"
+               BlueprintName = "ImportSanitizerCore"
                ReferencedContainer = "container:ImportSanitizer.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,9 +28,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "ImportSanitizer::ImportSanitizerCore"
-               BuildableName = "ImportSanitizerCore.framework"
-               BlueprintName = "ImportSanitizerCore"
+               BlueprintIdentifier = "ImportSanitizer::ImportSanitizer"
+               BuildableName = "ImportSanitizer"
+               BlueprintName = "ImportSanitizer"
                ReferencedContainer = "container:ImportSanitizer.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
